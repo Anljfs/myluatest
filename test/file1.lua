@@ -1,5 +1,6 @@
 local cjson=require("cjson")
 
+local _M = {}
 --[[
 	将一个lua变量转换为字符串
 	可以让你更加清楚的看到这个变量里面到底存了什么内容
@@ -54,8 +55,8 @@ local function to_str(value)
 	return str
 end
 
-local function log(obj, level)
-	local logpath = string.format("file%s.log", os.date("%Y%m%d"))
+function _M.log(obj, level)
+	local logpath = string.format("/home/anlj/test/mycode/log%s.log", os.date("%Y%m%d"))
 	local f, err = io.open(logpath, "a")
 	if not f then
 		return 
@@ -71,6 +72,7 @@ local function log(obj, level)
 	f:write(line)
 	f:close()
 end
+local log = _M.log
 local function getid(line)
 	local cid = string.gsub(line, "^%[(.*)%] %[(.*)%] %[(.*)%] (.*)$", "%2")
 	return cid
@@ -82,6 +84,10 @@ end
 local function getlogstr(line)
 	local logstr = string.gsub(line, "^%[(.*)%] %[(.*)%] %[(.*)%] (.*)$", "%4")
 	return logstr
+end
+local function getfilename(line)
+	local filename = string.gsub(line, "^(.+) (.+) (.+) (.+) (.+) (.+) (.+) (.+) (.+)$", "%9")
+	return filename 
 end
 local function ismsgline(line)
 	local fileinfo = getfileinfo(line)
@@ -138,5 +144,37 @@ local function readfile(fpath)
 	end
 	f:close()
 end
-
-readfile("/data/container_log/log_njfdkh_mc/tradelog/trace20160825.10.log")
+local function getlatestfile(fpath)
+	local go = io.popen("ls -lrt ".. (fpath or ""))
+	if not go then
+		print("not open")
+	end
+	local lastline 
+	for line in go:lines() do
+		print(line)
+		lastline = line
+	end
+	go:close()
+	local filename = getfilename(lastline)
+	print(filename)
+	return filename
+end
+local function getfilelist(fpath)
+	local go = io.popen("ls -lrt ".. (fpath or ""))
+	if not go then
+		print("not open")
+	end
+	local filelist = {}
+	for line in go:lines() do
+		print(line)
+		local filename = getfilename(line)
+		table.insert(filelist,filename)
+	end
+	
+	go:close()
+	print(to_str(filelist))
+	return filelist
+end
+getfilelist()
+--readfile("/data/container_log/log_njfdkh_mc/tradelog/trace20160825.10.log")
+return _M
