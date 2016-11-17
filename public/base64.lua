@@ -1,5 +1,7 @@
 local _M={}
-
+local function log(logstr)
+	print(logstr)
+end
 function _M.ToBase64(source_str)
     local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     local s64 = ''
@@ -68,5 +70,54 @@ function _M.FromBase64(str64)
     end
     return str
 end 
+
+function _M.DecodeFile_base64(filename)
+	local f,err = io.open(filename,"r")
+	if not f then
+		log("file can't open!")
+		return
+	end
+	local decodefile = filename ..".decode"
+	local fw,err1 = io.open(decodefile, "w")
+	if not f then
+		log("can not write file!")
+		f:close()
+		return
+	end
+	for line in f:lines() do
+		--log(line)
+		local decodestr = _M.FromBase64(line)
+		--log(decodestr)
+		fw:write(decodestr.."\n")
+	end
+	f:close()
+	fw:close()
+	return
+end
+
+function _M.EncodeFile_base64(filename)
+	local f,err = io.open(filename,"r")
+	if not f then
+		log("file can't open!")
+		return
+	end
+	local encodefile = filename ..".encode"
+	local fw,err1 = io.open(encodefile, "w")
+	if not f then
+		log("can not write file!")
+		f:close()
+		return
+	end
+	for line in f:lines() do
+		--log(line)
+		local encodestr = _M.ToBase64(line)
+		--log(decodestr)
+		fw:write(encodestr.."\n")
+	end
+	f:close()
+	fw:close()
+	return
+end
+_M.DecodeFile_base64(arg[1])
 
 return _M
